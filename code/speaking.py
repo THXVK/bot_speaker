@@ -1,3 +1,5 @@
+from log import logger
+
 import requests
 from config import IAM_TOKEN, FOLDER_ID
 
@@ -18,15 +20,11 @@ def make_requests(user_text: str):
     response = requests.post('https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize', headers=headers, data=data)
 
     if response.status_code == 200:
-        with open('voice.ogg', 'wb') as f:
-            f.write(response.content)
-
+        return True, response.content
     else:
-         print(f"{response.status_code}")
+        error_msg = f'ошибка speachkit: {response.content}'
+        logger.error(error_msg)
+        return False, error_msg
 
 
-if __name__ == "__main__":
-
-    text = "проснитесь мистер фримен"
-    make_requests(text)
 

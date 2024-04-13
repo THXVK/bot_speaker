@@ -1,5 +1,4 @@
 import sqlite3
-
 from log import logger
 from config import DB_NAME
 
@@ -65,9 +64,10 @@ def check_len():
         'SELECT message_len '
         'FROM users_data;'
     )
-    execute_query(sql_query)
-    ''
-    return
+    print(execute_query(sql_query))
+
+    return sum(execute_query(sql_query))
 
 
+create_db()
 create_users_data_table()
