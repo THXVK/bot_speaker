@@ -43,7 +43,7 @@ def create_users_data_table():
 def add_new_message(text: str, user_id: int):
     message_len = len(text)
     sql_query = (
-        'INSERT INTO user_data '
+        'INSERT INTO users_data '
         '(user_id, message, message_len) '
         'VALUES (?, ?, ?);'
     )
@@ -64,9 +64,11 @@ def check_len():
         'SELECT message_len '
         'FROM users_data;'
     )
-    print(execute_query(sql_query))
-
-    return sum(execute_query(sql_query))
+    tuples_list = execute_query(sql_query)
+    s = 0
+    for tup in tuples_list:
+        s += tup[0]
+    return s
 
 
 create_db()

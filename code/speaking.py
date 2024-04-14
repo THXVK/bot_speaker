@@ -25,6 +25,3 @@ def make_requests(user_text: str):
         error_msg = f'ошибка speachkit: {response.content}'
         logger.error(error_msg)
         return False, error_msg
-
-
-
