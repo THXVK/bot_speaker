@@ -35,7 +35,8 @@ def create_users_data_table():
         "(id INTEGER PRIMARY KEY, "
         "user_id INTEGER, "
         "message TEXT, "
-        "message_len INTEGER);"
+        "message_len INTEGER, "
+        "stt_blocks INTEGER);"
     )
     execute_query(sql_query)
 
@@ -59,7 +60,7 @@ def is_user_in_table(user_id: int) -> bool:
     return bool(execute_query(sql_query, (user_id,)))
 
 
-def check_len():
+def check_len() -> int:
     sql_query = (
         'SELECT message_len '
         'FROM users_data;'
@@ -68,6 +69,16 @@ def check_len():
     s = 0
     for tup in tuples_list:
         s += tup[0]
+    return s
+
+
+def check_len_for_user(user_id):
+    sql_query = (
+        f'SELECT SUM(message_len) '
+        f'FROM users_data '
+        f'WHERE user_id = {user_id};'
+    )
+    s = execute_query(sql_query)
     return s
 
 
