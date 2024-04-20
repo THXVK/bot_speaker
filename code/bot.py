@@ -1,8 +1,6 @@
 import math
-
 import telebot
 from telebot.types import Message
-
 from speaking import make_requests, speech_to_text
 from data import check_len, add_new_message, check_len_for_user, check_stt_block_num, check_all_stt_blocks_num
 from config import TOKEN, MAX_LEN_PER_MESSAGE, MAX_SIMBOLS, MAX_SIMBOLS_PER_USER, MAX_STT_BLOCK_PER_USER, \

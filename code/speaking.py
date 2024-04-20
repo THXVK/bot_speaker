@@ -3,9 +3,6 @@ from log import logger
 import requests
 from config import IAM_TOKEN, FOLDER_ID
 
-# ssh -i ~/.ssh/ssh_p student@158.160.134.86
-# curl -H Metadata-Flavor:Google 169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token
-
 
 def make_requests(user_text: str):
     headers = {
