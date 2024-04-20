@@ -39,8 +39,10 @@ def speech_to_text(data):
         'Authorization': f'Bearer {IAM_TOKEN}',
     }
 
+    url = f"https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?{params}"
+
     response = requests.post(
-        f"https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?{params}",
+        url=url,
         headers=headers,
         data=data
     )
@@ -48,8 +50,8 @@ def speech_to_text(data):
     decoded_data = response.json()
     if decoded_data.get("error_code") is None:
         return True, decoded_data.get("result")
+
     else:
-        # изменить
         error_msg = f'ошибка SpeachKit: {decoded_data.get("error_code")}'
         logger.error(error_msg)
         return False, error_msg

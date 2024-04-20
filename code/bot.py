@@ -1,9 +1,11 @@
+import math
+
 import telebot
 from telebot.types import Message
 
-from speaking import make_requests
-from data import check_len, add_new_message, check_len_for_user
-from config import TOKEN, MAX_LEN_PER_MESSAGE, MAX_SIMBOLS, MAX_SIMBOLS_PER_USER
+from speaking import make_requests, speech_to_text
+from data import check_len, add_new_message, check_len_for_user, check_stt_block_num
+from config import TOKEN, MAX_LEN_PER_MESSAGE, MAX_SIMBOLS, MAX_SIMBOLS_PER_USER, MAX_STT_BLOCK_PER_USER
 
 bot = telebot.TeleBot(token=TOKEN)
 
@@ -27,7 +29,7 @@ def tts(message: Message):
     message_register(message.chat.id)
 
 
-@bot.message_handler(commands=['tts'])
+@bot.message_handler(commands=['stt'])
 def stt(message: Message):
     voice_register(message.chat.id)
 
@@ -35,7 +37,9 @@ def stt(message: Message):
 @bot.message_handler(commands=['start'])
 def start(message: Message):
     chat_id = message.chat.id
-    bot.send_message(chat_id, 'Привет! Я могу озвучить все, что ты напишешь, для этого пропиши команду /tts')
+    bot.send_message(chat_id,
+                     'Привет! Я могу озвучить все, что ты напишешь, для этого пропиши команду /tts. '
+                     'Или /stt для перевода гс в текст')
 # endregion
 
 
@@ -79,7 +83,7 @@ def text_to_speach(message):
     user_id = message.from_user.id
     chat_id = message.chat.id
     text = message.text
-    add_new_message(text, user_id)
+    add_new_message(text, user_id, len(text), 0)
     result = make_requests(text)
     if result[0]:
         bot.send_voice(chat_id, result[1])
@@ -109,19 +113,43 @@ def voice_processing(message):
                 bot.send_message(user_id, 'вы должны отправить гс, а не текст')
                 voice_register(user_id)
         else:
-            bot.send_message(user_id, 'отправьте гс')
+            bot.send_message(user_id, 'отправьте гс, а не файл')
         return
+    else:
+        dur = message.voice.duration
+        if dur == 0:
+            dur = 1
+
+        if dur > 30:
+            bot.send_message(user_id, 'гс слишком длинное')
+            voice_register(user_id)
+        else:
+            blocks_duration = math.ceil(dur / 15)
+            blocks = check_stt_block_num(user_id)
+
+            if blocks + blocks_duration > MAX_STT_BLOCK_PER_USER:
+                bot.send_message(user_id, 'ваш лимит на распознавание исчерпан')
+            else:
+                speach_to_text(message, blocks_duration)
+
+
+def speach_to_text(message, duration):
 
     file_id = message.voice.file_id
     file_info = bot.get_file(file_id)
     file = bot.download_file(file_info.file_path)
-    speach_to_text(file)
 
+    user_id = message.from_user.id
+    chat_id = message.chat.id
 
-def speach_to_text(voice_file):
-    pass
-
-
+    result = speech_to_text(file)
+    text = result[1]
+    if result[0]:
+        add_new_message(text, user_id, 0, duration)
+        bot.send_message(chat_id, result[1])
+        voice_register(chat_id)
+    else:
+        bot.send_message(chat_id, result[1])
 
 
 bot.infinity_polling()

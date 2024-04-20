@@ -41,14 +41,13 @@ def create_users_data_table():
     execute_query(sql_query)
 
 
-def add_new_message(text: str, user_id: int):
-    message_len = len(text)
+def add_new_message(text: str, user_id: int, message_len: int, stt_blocks: int):
     sql_query = (
         'INSERT INTO users_data '
-        '(user_id, message, message_len) '
-        'VALUES (?, ?, ?);'
+        '(user_id, message, message_len, stt_blocks) '
+        'VALUES (?, ?, ?, ?);'
     )
-    execute_query(sql_query, (user_id, text, message_len))
+    execute_query(sql_query, (user_id, text, message_len, stt_blocks))
 
 
 def is_user_in_table(user_id: int) -> bool:
@@ -70,6 +69,18 @@ def check_len() -> int:
     for tup in tuples_list:
         s += tup[0]
     return s
+
+
+def check_stt_block_num(user_id):
+    sql_query = (
+        f'SELECT SUM(stt_blocks) '
+        f'FROM users_data '
+        f'WHERE user_id = {user_id};')
+
+    if execute_query(sql_query)[0][0]:
+        return execute_query(sql_query)
+    else:
+        return 0
 
 
 def check_len_for_user(user_id):
