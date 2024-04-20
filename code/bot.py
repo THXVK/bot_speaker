@@ -13,7 +13,7 @@ bot = telebot.TeleBot(token=TOKEN)
 
 # region commands
 @bot.message_handler(comands=['help'])
-def help(message):
+def help_message(message):
     chat_id = message.chat.id
     bot.send_message(chat_id,
                      """
