@@ -83,6 +83,17 @@ def check_stt_block_num(user_id):
         return 0
 
 
+def check_all_stt_blocks_num():
+    sql_query = (
+        f'SELECT SUM(stt_blocks) '
+        f'FROM users_data;')
+
+    if execute_query(sql_query)[0][0]:
+        return execute_query(sql_query)
+    else:
+        return 0
+
+
 def check_len_for_user(user_id):
     sql_query = (
         f'SELECT SUM(message_len) '

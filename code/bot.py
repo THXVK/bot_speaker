@@ -4,8 +4,9 @@ import telebot
 from telebot.types import Message
 
 from speaking import make_requests, speech_to_text
-from data import check_len, add_new_message, check_len_for_user, check_stt_block_num
-from config import TOKEN, MAX_LEN_PER_MESSAGE, MAX_SIMBOLS, MAX_SIMBOLS_PER_USER, MAX_STT_BLOCK_PER_USER
+from data import check_len, add_new_message, check_len_for_user, check_stt_block_num, check_all_stt_blocks_num
+from config import TOKEN, MAX_LEN_PER_MESSAGE, MAX_SIMBOLS, MAX_SIMBOLS_PER_USER, MAX_STT_BLOCK_PER_USER, \
+    ALL_STT_BLOCKS_LIMIT
 
 bot = telebot.TeleBot(token=TOKEN)
 
@@ -62,21 +63,24 @@ def message_register(chat_id):
 def message_processing(message: Message):
     chat_id = message.chat.id
     text = message.text
-    if text == '/stop':
-        bot.send_message(chat_id, 'сессия прервана, чтобы продолжить, напишите /tts')
-    elif text.startswith('/'):
-        bot.send_message(chat_id, 'Если хотите использовать команды, напишите /stop')
-        message_register(chat_id)
-    else:
-        if len(text) > MAX_LEN_PER_MESSAGE:
-            bot.send_message(chat_id, 'ваше сообщение слишком длинное, напишите новое')
+    if message.text:
+        if text == '/stop':
+            bot.send_message(chat_id, 'сессия прервана, чтобы продолжить, напишите /tts')
+        elif text.startswith('/'):
+            bot.send_message(chat_id, 'Если хотите использовать команды, напишите /stop')
             message_register(chat_id)
-        elif len(text) + check_len() >= MAX_SIMBOLS:
-            bot.send_message(chat_id, 'общий лимит символов исчерпан, сейчас вы не можете озвучивать текст')
-        elif check_len_for_user(chat_id) + len(text) > MAX_SIMBOLS_PER_USER:
-            bot.send_message(chat_id, 'ваш лимит символов исчерпан, вы не можете озвучивать текст')
         else:
-            text_to_speach(message)
+            if len(text) > MAX_LEN_PER_MESSAGE:
+                bot.send_message(chat_id, 'ваше сообщение слишком длинное, напишите новое')
+                message_register(chat_id)
+            elif len(text) + check_len() >= MAX_SIMBOLS:
+                bot.send_message(chat_id, 'общий лимит символов исчерпан, сейчас вы не можете озвучивать текст')
+            elif check_len_for_user(chat_id) + len(text) > MAX_SIMBOLS_PER_USER:
+                bot.send_message(chat_id, 'ваш лимит символов исчерпан, вы не можете озвучивать текст')
+            else:
+                text_to_speach(message)
+    else:
+        bot.send_message(chat_id, 'отправьте текстовое сообщение')
 
 
 def text_to_speach(message):
@@ -129,6 +133,8 @@ def voice_processing(message):
 
             if blocks + blocks_duration > MAX_STT_BLOCK_PER_USER:
                 bot.send_message(user_id, 'ваш лимит на распознавание исчерпан')
+            elif check_all_stt_blocks_num() + blocks_duration > ALL_STT_BLOCKS_LIMIT:
+                bot.send_message(user_id, 'извините, общий лимит на распознавание исчерпан')
             else:
                 speach_to_text(message, blocks_duration)
 
